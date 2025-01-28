@@ -16,12 +16,12 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 
 def get_pdf_text(pdf_docs):
-    text=""
+    text = ""
     for pdf in pdf_docs:
-        pdf_reader= PdfReader(pdf)
+        pdf_reader = PdfReader(pdf)
         for page in pdf_reader.pages:
-            text+= page.extract_text()
-    return  text
+            text += page.extract_text()
+    return text
 
 
 def get_text_chunks(text):
@@ -31,13 +31,12 @@ def get_text_chunks(text):
 
 
 def get_vector_store(text_chunks):
-    embeddings = GoogleGenerativeAIEmbeddings(model = "models/embedding-001")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
     vector_store.save_local("faiss_index")
 
 
 def get_conversational_chain():
-
     prompt_template = """
         Answer the question as detailed as possible from the provided context, make sure to provide all the details, if the answer is not in
         provided context just say, "answer is not available in the context", don't provide the wrong answer\n\n
@@ -48,33 +47,46 @@ def get_conversational_chain():
     """
 
     model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3)
-    prompt = PromptTemplate(template = prompt_template, input_variables = ["context", "question"])
+    prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
     chain = load_qa_chain(model, chain_type="stuff", prompt=prompt)
 
     return chain
 
 
 def user_input(user_question):
-    embeddings = GoogleGenerativeAIEmbeddings(model = "models/embedding-001")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
     docs = new_db.similarity_search(user_question)
     chain = get_conversational_chain()
-    
-    response = chain(
-        {"input_documents":docs, "question": user_question}, return_only_outputs=True)
 
-    print(response)
-    st.write("Reply: ", response["output_text"])
+    response = chain(
+        {"input_documents": docs, "question": user_question}, return_only_outputs=True
+    )
+
+    return response["output_text"]
 
 
 def main():
     st.set_page_config("Chat with Multiple PDFs")
     st.header("Chat with Multiple PDFs")
 
+    # Initialize session state for conversation history
+    if "history" not in st.session_state:
+        st.session_state.history = []
+
     user_question = st.text_input("Ask a Question from the PDF Files")
 
     if user_question:
-        user_input(user_question)
+        response = user_input(user_question)
+        # Add the question and response to session state
+        st.session_state.history.append({"question": user_question, "response": response})
+        st.write("Reply: ", response)
+
+    # Display the conversation history
+    with st.expander("Conversation History"):
+        for i, entry in enumerate(st.session_state.history):
+            st.write(f"**Q{i + 1}:** {entry['question']}")
+            st.write(f"**A{i + 1}:** {entry['response']}")
 
     with st.sidebar:
         st.title("Menu:")
@@ -86,5 +98,7 @@ def main():
                 get_vector_store(text_chunks)
                 st.success("Done")
 
+
 if __name__ == "__main__":
     main()
+
