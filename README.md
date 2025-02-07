@@ -25,7 +25,7 @@ conda create -n your-chosen-name python=3.10 -y
 conda activate your-chosen-name
 ```
 
-#### 3. Rename the '.env.example' file to '.env' and insert your gOOGLE API key
+#### 3. Rename the '.env.example' file to '.env' and insert your Google API key
 
 #### 4. Install the requirements
 ```
