@@ -11,12 +11,12 @@ This project is an AI-powered chatbot designed to summarize, analyze, and extrac
 
 ## Steps to run this Project
 
-#### Clone the repository
+#### 1. Clone the repository
 ```
 git clone https://github.com/fosetorico/Chat-With-Multiple-PDF-Documents.git
 ```
 
-#### Create a conda environment after opening the repository
+#### 2. Create a conda environment after opening the repository
 ```
 conda create -n your-chosen-name python=3.10 -y
 ```
@@ -25,12 +25,14 @@ conda create -n your-chosen-name python=3.10 -y
 conda activate your-chosen-name
 ```
 
-#### install the requirements
+#### 3. Rename the '.env.example' file to '.env' and insert your gOOGLE API key
+
+#### 4. Install the requirements
 ```
 pip install -r requirements.txt
 ```
 
-#### Finally run the following command
+#### 5. Finally run the following command
 ```
 streamlit run app.py
 ```
